@@ -1,0 +1,21 @@
+{
+    "Author": "あで",
+    "Name": "SubmersibleScheduler",
+    "InternalName": "SubmersibleScheduler",
+    "AssemblyVersion": "0.0.0.1",
+    "Description": "unko",
+    "ApplicableVersion": "any",
+    "Tags": [
+      "submarine",
+      "plugin"
+    ],
+    "DalamudApiLevel": 9,
+    "LoadRequiredState": 0,
+    "LoadSync": false,
+    "CanUnloadAsync": false,
+    "LoadPriority": 0,
+    "Punchline": "",
+    "AcceptsFeedback": true,
+    "DownloadLinkInstall": "https://github.com/aaawwwws/aaaaa/releases/download/0.0.0.1/latest.zip"
+  }
+  
