@@ -10,7 +10,7 @@ using System.Text;
 using System.IO;
 using Dalamud.Configuration;
 using Dalamud.Plugin.Services;
-namespace SamplePlugin.Windows;
+namespace SubmersibleScheduler.Windows;
 
 public unsafe class MainWindow : Window, IDisposable
 {
@@ -49,11 +49,11 @@ public unsafe class MainWindow : Window, IDisposable
         var wt = hb->WorkshopTerritory;
         if (wt == null)
         {
-            ImGui.Text("wt null");
+            ImGui.Text("潜水艦を確認してください。");
             return;
         }
 
-        ImGui.InputText("test", ref this.webhook, (uint)128);
+        ImGui.InputText("webhookを入力", ref this.webhook, (uint)128);
         string[] array = new string[4];
 
         for (var i = 0; i < array.Length; i++)
@@ -81,7 +81,7 @@ public unsafe class MainWindow : Window, IDisposable
                 {
                     if (string.IsNullOrEmpty(e.Message))
                     {
-                        ImGui.Text("error");
+                        ImGui.Text("謎エラー");
                     }
                     else
                     {
