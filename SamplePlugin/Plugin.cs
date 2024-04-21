@@ -13,7 +13,7 @@ using Dalamud;
 
 namespace SubmersibleScheduler
 {
-
+    //メインクラス
     public sealed class Plugin : IDalamudPlugin, IServiceType
 
     {

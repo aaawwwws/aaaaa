@@ -1,27 +1,17 @@
 using System;
 using System.Numerics;
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using FFXIVClientStructs.FFXIV.Client.Game.Housing;
 using System.Threading.Tasks;
-using FFXIVClientStructs.FFXIV.Client.System.Input;
-using System.Text;
-using System.IO;
-using Dalamud.Configuration;
-using Dalamud.Plugin.Services;
 namespace SubmersibleScheduler.Windows;
 
 public unsafe class MainWindow : Window, IDisposable
 {
-    private IDalamudTextureWrap? GoatImage;
-    private Plugin Plugin;
-    private DateTime submarine;
-    private string webhook;
-    private bool b;
-    // We give this window a hidden ID using ##
-    // So that the user will see "My Amazing Window" as window title,
-    // but for ImGui the ID is "My Amazing Window##With a hidden ID"
+#pragma warning disable IDE1006 // 命名スタイル
+    private readonly Plugin Plugin;
+    private WebHook WebHook;
+    private SubReturn SubReturn;
     public MainWindow(Plugin plugin)
         : base("潜水艦", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
@@ -30,10 +20,8 @@ public unsafe class MainWindow : Window, IDisposable
             MinimumSize = new Vector2(375, 330),
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
         };
-
-        GoatImage = goatImage;
         Plugin = plugin;
-        this.webhook = System.String.Empty;
+        WebHook = new WebHook(Plugin);
     }
 
     public void Dispose() { }
@@ -53,7 +41,7 @@ public unsafe class MainWindow : Window, IDisposable
             return;
         }
 
-        ImGui.InputText("webhookを入力", ref this.webhook, (uint)128);
+        ImGui.InputText("WebHookを入力", ref this.WebHook.EndPoint, (uint)128);
         string[] array = new string[4];
 
         for (var i = 0; i < array.Length; i++)
@@ -62,11 +50,7 @@ public unsafe class MainWindow : Window, IDisposable
             array[i] = $"{template}{i + 1}:{wt->Submersible.DataPointerListSpan[i].Value->GetReturnTime().ToLocalTime()}\n";
         }
 
-        if (ImGui.Button("保存") && Plugin.Configuration.WebHook != webhook)
-        {
-            Plugin.Configuration.WebHook = this.webhook;
-            Plugin.Configuration.Save();
-        }
+        this.WebHook.Save(ImGui.Button("保存"));
 
         if (ImGui.Button("潜水艦の情報をdiscordに送信"))
         {
@@ -75,7 +59,7 @@ public unsafe class MainWindow : Window, IDisposable
             {
                 try
                 {
-                    new Discord(this.webhook.Replace("\r", "").Replace("\n", "").Trim(), string.Join("", array)).SendMsg().GetAwaiter().GetResult();
+                    new Discord(this.WebHook.EndPointTrim(), string.Join("", array)).SendMsg().GetAwaiter().GetResult();
                 }
                 catch (Exception e)
                 {
