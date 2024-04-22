@@ -16,7 +16,8 @@ public class MainWindow : Window, IDisposable
     private WebHook WebHook;
     private SubReturn SubReturn;
     private System.Object lockobj;
-    private string msg = string.Empty;
+    private string msg;
+    private bool init;
     public MainWindow(Plugin plugin)
         : base("潜水艦", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
@@ -29,6 +30,7 @@ public class MainWindow : Window, IDisposable
         this.WebHook = new WebHook(Plugin);
         this.lockobj = new System.Object();
         this.msg = string.Empty;
+        this.init = true;
     }
 
     public void Dispose() { }
@@ -60,6 +62,13 @@ public class MainWindow : Window, IDisposable
         }
 
         ImGui.InputText("WebHookを入力", ref this.WebHook.EndPoint, (uint)128);
+
+        if (Plugin.Configuration.WebHook != string.Empty && this.init)
+        {
+            init = false;
+            this.WebHook.EndPoint = Plugin.Configuration.WebHook;
+        }
+
         if (ImGui.Button("保存"))
         {
             this.WebHook.Save();
@@ -79,6 +88,7 @@ public class MainWindow : Window, IDisposable
         }
         ImGui.Text(this.msg);
     }
+
     private Result<string> Discord(string[] array)
     {
         try
