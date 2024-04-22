@@ -7,7 +7,7 @@ namespace SubmersibleScheduler
     public class WebHook
     {
         public string EndPoint;
-        public Plugin Plugin;
+        private Plugin Plugin;
 
         public WebHook(Plugin plugin)
         {
@@ -15,9 +15,9 @@ namespace SubmersibleScheduler
             this.Plugin = plugin;
         }
 
-        public void Save (bool button)
+        public void Save ()
         {
-            if(button && Plugin.Configuration.WebHook != this.EndPoint)
+            if(Plugin.Configuration.WebHook != this.EndPoint)
             {
                 Plugin.Configuration.WebHook = this.EndPoint;
                 Plugin.Configuration.Save();

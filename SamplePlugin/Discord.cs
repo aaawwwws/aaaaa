@@ -9,6 +9,7 @@ namespace SubmersibleScheduler
     {
         private readonly string webhook;
         private readonly string msg;
+
         public Discord(string end_point, string msg)
         {
             this.webhook = end_point;
