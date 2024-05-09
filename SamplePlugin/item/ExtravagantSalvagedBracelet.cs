@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace SubmersibleScheduler.item
 {
-    public class Sapphire : Item
+    public class ExtravagantSalvagedBracelet : Item
     {
-        public Sapphire(bool hq) : base(hq)
+        public ExtravagantSalvagedBracelet(bool hq) : base(hq)
         {
-            this.name = "サファイア";
+            this.name = "沈没船の高級腕輪";
             this.value = this.hq ? GEM_VALUE + HQ_VALUE : GEM_VALUE;
         }
     }

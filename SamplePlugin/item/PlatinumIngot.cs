@@ -10,7 +10,7 @@ namespace SubmersibleScheduler.item
     {
         public PlatinumIngot(bool hq) : base(hq)
         {
-            this.name = "ダイヤモンド";
+            this.name = "プラチナインゴット";
             this.value = this.hq ? GEM_VALUE + HQ_VALUE : GEM_VALUE;
         }
     }
