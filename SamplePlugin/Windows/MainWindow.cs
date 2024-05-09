@@ -5,6 +5,10 @@ using ImGuiNET;
 using FFXIVClientStructs.FFXIV.Client.Game.Housing;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using FFXIVClientStructs.FFXIV.Client.System.Input;
+using System.Xml.Xsl;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
+using FFXIVClientStructs.FFXIV.Client.System.String;
 namespace SubmersibleScheduler.Windows;
 
 public unsafe class MainWindow : Window, IDisposable
@@ -36,7 +40,7 @@ public unsafe class MainWindow : Window, IDisposable
 
     public void Dispose() { }
 
-    public unsafe override void Draw()
+    public override unsafe void Draw()
     {
         if (this.HousingManager == null)
         {
@@ -70,7 +74,7 @@ public unsafe class MainWindow : Window, IDisposable
         if (ImGui.Button("潜水艦の情報をdiscordに送信"))
         {
             //別スレッド
-            Task.Run(() =>
+            System.Threading.Tasks.Task.Run(() =>
             {
                 var res = sba.send_msg(this.WebHook.EndPoint);
                 lock (lockobj)
@@ -79,35 +83,30 @@ public unsafe class MainWindow : Window, IDisposable
                 }
             });
         }
-        List<uint> aa = new List<uint>();
+        var test = new ResultItems();
+        var cc = new List<uint>();
         foreach (var a in this.HousingManager->WorkshopTerritory->Submersible.DataListSpan)
         {
             foreach (var b in a.GatheredDataSpan)
             {
-                if (b.ItemCountAdditional == 0)
+                if (b.ItemIdPrimary != 0)
                 {
-                    continue;
+                    test.ItemPush(b.ItemIdPrimary, b.ItemHQAdditional, b.ItemCountPrimary);
                 }
-                aa.Add(b.ItemIdPrimary);
+                else
+                {
+                    test.ItemPush(b.ItemIdAdditional, b.ItemHQAdditional, b.ItemCountAdditional);
+                }
             }
         }
-        foreach(var b in aa)
+        if (ImGui.Button("コピー"))
         {
-            ImGui.Text(b.ToString());
+            var clip_bord = Framework.Instance()->UIClipboard->Data;
+            clip_bord.SetCopyStagingText(Utf8String.FromString($"{test.ItemStr()}\n{test.TotalValue()}"));
+            clip_bord.ApplyCopyStagingText();
         }
+        ImGui.Text(test.ItemStr().ToString());
+        ImGui.Text(test.TotalValue());
         ImGui.Text(this.msg);
-    }
-
-    private Result<string> Discord(string[] array)
-    {
-        try
-        {
-            new Discord(this.WebHook.EndPointTrim(), string.Join("", array)).SendMsg().GetAwaiter().GetResult();
-            return new Result<string>("成功", Res.Ok);
-        }
-        catch (Exception e)
-        {
-            return new Result<string>(e.Message, Res.Err);
-        }
     }
 }

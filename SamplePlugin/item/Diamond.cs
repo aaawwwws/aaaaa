@@ -8,10 +8,13 @@ namespace SubmersibleScheduler.item
 {
     public class Diamond : Item
     {
-        public Diamond(bool hq) : base(hq)
+        public Diamond(bool hq, ushort amount) : base(hq, amount)
         {
-            this.name = "ダイヤモンド";
-            this.value = this.hq ? GEM_VALUE + HQ_VALUE : GEM_VALUE;
+            this.Name = "ダイヤモンド";
+            const uint normal_value = 2;
+            const uint hq_value = 3;
+            this.Value = this.Hq ? hq_value : normal_value;
+            this.Value = this.Value * amount;
         }
     }
 }

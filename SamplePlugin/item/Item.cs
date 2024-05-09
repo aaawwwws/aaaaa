@@ -6,16 +6,16 @@ using System.Threading.Tasks;
 
 namespace SubmersibleScheduler.item
 {
-    public abstract class Item
+    public class Item
     {
-        protected readonly bool hq;
-        protected string name;
-        protected uint value;
-        protected const uint GEM_VALUE = 2;
-        protected const uint HQ_VALUE = 1;
-        protected Item(bool hq)
+        protected readonly bool Hq;
+        public string Name { get; set; }
+        public uint Value { get; protected set; }
+        public uint Amount { get; protected set; }
+        protected Item(bool hq, ushort amount)
         {
-            this.hq = hq;
+            this.Hq = hq;
+            this.Amount = amount;
         }
     }
 }

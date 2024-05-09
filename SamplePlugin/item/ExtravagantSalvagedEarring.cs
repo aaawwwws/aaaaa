@@ -8,10 +8,11 @@ namespace SubmersibleScheduler.item
 {
     public class ExtravagantSalvagedEarring : Item
     {
-        public ExtravagantSalvagedEarring(bool hq) : base(hq)
+        public ExtravagantSalvagedEarring(bool hq, ushort amount) : base(hq, amount)
         {
-            this.name = "沈没船の高級耳飾り";
-            this.value = this.hq ? GEM_VALUE + HQ_VALUE : GEM_VALUE;
+            this.Name = "沈没船の高級耳飾り";
+            this.Value = 30000;
+            this.Value = this.Value * amount;
         }
     }
 }

@@ -8,10 +8,13 @@ namespace SubmersibleScheduler.item
 {
     public class PlatinumIngot : Item
     {
-        public PlatinumIngot(bool hq) : base(hq)
+        public PlatinumIngot(bool hq, ushort amount) : base(hq, amount)
         {
-            this.name = "プラチナインゴット";
-            this.value = this.hq ? GEM_VALUE + HQ_VALUE : GEM_VALUE;
+            this.Name = "プラチナインゴット";
+            const uint normal_value = 4;
+            const uint hq_value = 5;
+            this.Value = this.Hq ? hq_value : normal_value;
+            this.Value = this.Value * amount;
         }
     }
 }
