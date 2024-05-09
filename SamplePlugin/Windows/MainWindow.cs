@@ -4,12 +4,10 @@ using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using FFXIVClientStructs.FFXIV.Client.Game.Housing;
 using System.Threading.Tasks;
-using FFXIVClientStructs.Havok;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using FFXIVClientStructs.STD;
+using System.Collections.Generic;
 namespace SubmersibleScheduler.Windows;
 
-public class MainWindow : Window, IDisposable
+public unsafe class MainWindow : Window, IDisposable
 {
 #pragma warning disable IDE1006 // 命名スタイル
     private readonly Plugin Plugin;
@@ -18,7 +16,9 @@ public class MainWindow : Window, IDisposable
     private System.Object lockobj;
     private string msg;
     private bool init;
-    public MainWindow(Plugin plugin)
+    private HousingManager* HousingManager;
+
+    public MainWindow(Plugin plugin, HousingManager* hm)
         : base("潜水艦", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
         SizeConstraints = new WindowSizeConstraints
@@ -31,20 +31,20 @@ public class MainWindow : Window, IDisposable
         this.lockobj = new System.Object();
         this.msg = string.Empty;
         this.init = true;
+        this.HousingManager = hm;
     }
 
     public void Dispose() { }
 
     public unsafe override void Draw()
     {
-        var hb = HousingManager.Instance();
-        if (hb == null)
+        if (this.HousingManager == null)
         {
             ImGui.Text("null");
             return;
         }
 
-        var wt = hb->WorkshopTerritory;
+        var wt = this.HousingManager->WorkshopTerritory;
 
         if (wt == null)
         {
@@ -52,14 +52,7 @@ public class MainWindow : Window, IDisposable
             return;
         }
 
-
-        string[] array = new string[4];
-
-        for (var i = 0; i < array.Length; i++)
-        {
-            const string template = "潜水艦";
-            array[i] = $"{template}{i + 1}:{wt->Submersible.DataPointerListSpan[i].Value->GetReturnTime().ToLocalTime()}\n";
-        }
+        var sba = new SubMarineArray(wt->Submersible);
 
         ImGui.InputText("WebHookを入力", ref this.WebHook.EndPoint, (uint)128);
 
@@ -79,12 +72,28 @@ public class MainWindow : Window, IDisposable
             //別スレッド
             Task.Run(() =>
             {
-                var res = Discord(array);
+                var res = sba.send_msg(this.WebHook.EndPoint);
                 lock (lockobj)
                 {
                     this.msg = res.Unwrap();
                 }
             });
+        }
+        List<uint> aa = new List<uint>();
+        foreach (var a in this.HousingManager->WorkshopTerritory->Submersible.DataListSpan)
+        {
+            foreach (var b in a.GatheredDataSpan)
+            {
+                if (b.ItemCountAdditional == 0)
+                {
+                    continue;
+                }
+                aa.Add(b.ItemIdPrimary);
+            }
+        }
+        foreach(var b in aa)
+        {
+            ImGui.Text(b.ToString());
         }
         ImGui.Text(this.msg);
     }

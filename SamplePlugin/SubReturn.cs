@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using FFXIVClientStructs.FFXIV.Client.Game.Housing;
 
 namespace SubmersibleScheduler

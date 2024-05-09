@@ -10,10 +10,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Dalamud;
+using FFXIVClientStructs.FFXIV.Client.Game.Housing;
 
 namespace SubmersibleScheduler
 {
-    //メインクラスa
+    //エントリーポイント
     public sealed class Plugin : IDalamudPlugin, IServiceType
 
     {
@@ -27,7 +28,7 @@ namespace SubmersibleScheduler
         private ConfigWindow ConfigWindow { get; init; }
         private MainWindow MainWindow { get; init; }
 
-        public Plugin(
+        public unsafe Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
             [RequiredVersion("1.0")] ICommandManager commandManager,
             [RequiredVersion("1.0")] ITextureProvider textureProvider)
@@ -38,12 +39,14 @@ namespace SubmersibleScheduler
             Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             Configuration.Initialize(PluginInterface);
 
+            var hm = HousingManager.Instance();
+
             // you might normally want to embed resources and load them from the manifest stream
 
             // ITextureProvider takes care of the image caching and dispose
 
             ConfigWindow = new ConfigWindow(this);
-            MainWindow = new MainWindow(this);
+            MainWindow = new MainWindow(this, hm);
 
             WindowSystem.AddWindow(ConfigWindow);
             WindowSystem.AddWindow(MainWindow);
