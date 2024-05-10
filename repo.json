@@ -1,8 +1,9 @@
-{
+[
+    {
     "Author": "ade",
     "Name": "SubmersibleScheduler",
     "InternalName": "SubmersibleScheduler",
-    "AssemblyVersion": "0.0.0.3",
+    "AssemblyVersion": "0.0.0.4",
     "Description": "unko",
     "ApplicableVersion": "any",
     "Tags": [
@@ -17,7 +18,8 @@
     "Punchline": "",
     "AcceptsFeedback": true,
     "ImageUrls": null,
-    "DownloadLinkInstall": "https://github.com/aaawwwws/aaaaa/releases/download/0.0.0.3/latest.zip",
-    "DownloadLinkTesting": "https://github.com/aaawwwws/aaaaa/releases/download/0.0.0.3/latest.zip",
-    "DownloadLinkUpdate": "https://github.com/aaawwwws/aaaaa/releases/download/0.0.0.3/latest.zip"
-}
+    "DownloadLinkInstall": "https://github.com/aaawwwws/aaaaa/releases/download/0.0.0.4/latest.zip",
+    "DownloadLinkTesting": "https://github.com/aaawwwws/aaaaa/releases/download/0.0.0.4/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/aaawwwws/aaaaa/releases/download/0.0.0.4/latest.zip"
+    }
+]
