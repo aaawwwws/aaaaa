@@ -1,3 +1,4 @@
+using ImGuiNET;
 using SubmersibleScheduler.item;
 using System;
 using System.Collections.Generic;
@@ -46,15 +47,17 @@ namespace SubmersibleScheduler
                 _ => null,
             };
         }
+
         public string ItemStr()
         {
             var res = new StringBuilder();
             foreach (var item in Items)
             {
-                res.Append($"{item.Name}:{item.Amount}個\n");
+                res.Append($"{item.Name}{item.GetQuality()}{item.GetAmout()}\n");
             }
             return res.ToString();
         }
+
         public string TotalValue()
         {
             uint total = 0;
@@ -62,7 +65,7 @@ namespace SubmersibleScheduler
             {
                 total += item.Value;
             }
-            return $"本日の収穫:{total}ギル";
+            return String.Format("本日の収穫{0:#,0}ギル", total);
         }
     }
 }

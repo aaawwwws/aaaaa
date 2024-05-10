@@ -84,16 +84,21 @@ public unsafe class MainWindow : Window, IDisposable
             });
         }
         var test = new ResultItems();
-        var cc = new List<uint>();
         foreach (var a in this.HousingManager->WorkshopTerritory->Submersible.DataListSpan)
         {
             foreach (var b in a.GatheredDataSpan)
             {
-                if (b.ItemIdPrimary != 0)
+                if (b.ItemIdPrimary == 0 && b.ItemIdAdditional == 0)
                 {
-                    test.ItemPush(b.ItemIdPrimary, b.ItemHQAdditional, b.ItemCountPrimary);
+                    continue;
                 }
-                else
+
+
+                if (0 < b.ItemIdPrimary)
+                {
+                    test.ItemPush(b.ItemIdPrimary, b.ItemHQPrimary, b.ItemCountPrimary);
+                }
+                if (0 < b.ItemIdAdditional)
                 {
                     test.ItemPush(b.ItemIdAdditional, b.ItemHQAdditional, b.ItemCountAdditional);
                 }
@@ -105,7 +110,7 @@ public unsafe class MainWindow : Window, IDisposable
             clip_bord.SetCopyStagingText(Utf8String.FromString($"{test.ItemStr()}\n{test.TotalValue()}"));
             clip_bord.ApplyCopyStagingText();
         }
-        ImGui.Text(test.ItemStr().ToString());
+        ImGui.Text(test.ItemStr());
         ImGui.Text(test.TotalValue());
         ImGui.Text(this.msg);
     }

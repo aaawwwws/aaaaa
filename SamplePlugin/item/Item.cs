@@ -17,5 +17,15 @@ namespace SubmersibleScheduler.item
             this.Hq = hq;
             this.Amount = amount;
         }
+
+        public string GetQuality()
+        {
+            return this.Hq ? "(HQ)" : string.Empty;
+        }
+
+        public string GetAmout()
+        {
+            return $":{this.Amount}個";
+        }
     }
 }
