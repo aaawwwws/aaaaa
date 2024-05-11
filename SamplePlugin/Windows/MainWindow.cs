@@ -104,7 +104,7 @@ public unsafe class MainWindow : Window, IDisposable
                 }
             }
         }
-        if (ImGui.Button("コピー"))
+        if (ImGui.Button("コピーーーーー"))
         {
             var clip_bord = Framework.Instance()->UIClipboard->Data;
             clip_bord.SetCopyStagingText(Utf8String.FromString($"{test.ItemStr()}\n{test.TotalValue()}"));
