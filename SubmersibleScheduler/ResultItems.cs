@@ -1,3 +1,4 @@
+using Dalamud.Plugin.Services;
 using ImGuiNET;
 using SubmersibleScheduler.item;
 using System;
@@ -10,12 +11,12 @@ namespace SubmersibleScheduler
 {
     public class ResultItems
     {
-        public List<Item> Items;
-
+        public List<Item> Items { get; private set; }
         public ResultItems()
         {
-            Items = new List<Item>();
+            this.Items = new List<Item>();
         }
+
 
         public void ItemPush(uint id, bool hq, ushort amount)
         {
@@ -24,7 +25,16 @@ namespace SubmersibleScheduler
             {
                 return;
             }
-            Items.Add(item);
+
+            var index = this.Items.FindIndex(i => i.Name == item.Name && i.Hq == item.Hq);
+
+            if (index >= 0)
+            {
+                this.Items[index].Add(item);
+                return;
+            }
+
+            this.Items.Add(item);
         }
 
         private static Item? ItemCheck(uint id, bool hq, ushort amount)
@@ -51,9 +61,9 @@ namespace SubmersibleScheduler
         public string ItemStr()
         {
             var res = new StringBuilder();
-            foreach (var item in Items)
+            foreach (var item in this.Items)
             {
-                res.Append($"{item.Name}{item.GetQuality()}{item.GetAmout()}\n");
+                res.Append($"{item.Name}{item.GetQuality()}{item.GetAmout()}({item.TotalValue}ギル)\n");
             }
             return res.ToString();
         }
@@ -61,11 +71,11 @@ namespace SubmersibleScheduler
         public string TotalValue()
         {
             uint total = 0;
-            foreach (var item in Items)
+            foreach (var item in this.Items)
             {
-                total += item.Value;
+                total += item.TotalValue;
             }
-            return String.Format("本日の収穫{0:#,0}ギル", total);
+            return string.Format("本日の収穫{0:#,0}ギル", total);
         }
     }
 }

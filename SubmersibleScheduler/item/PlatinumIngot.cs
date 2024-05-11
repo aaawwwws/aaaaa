@@ -8,13 +8,17 @@ namespace SubmersibleScheduler.item
 {
     public class PlatinumIngot : Item
     {
+        private const uint NORMAL_VALUE = 4;
+        private const uint HQ_VALUE = 5;
         public PlatinumIngot(bool hq, ushort amount) : base(hq, amount)
         {
             this.Name = "プラチナインゴット";
-            const uint normal_value = 4;
-            const uint hq_value = 5;
-            this.Value = this.Hq ? hq_value : normal_value;
-            this.Value = this.Value * amount;
+            this.UnitPrice = this.Hq ? HQ_VALUE : NORMAL_VALUE;
+            this.TotalValue = this.UnitPrice * amount;
+        }
+        public override void Add(Item item)
+        {
+            this.TotalValue = (item.Amount + this.Amount) * this.UnitPrice;
         }
     }
 }

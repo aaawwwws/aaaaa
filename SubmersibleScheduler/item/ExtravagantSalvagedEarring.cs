@@ -8,11 +8,13 @@ namespace SubmersibleScheduler.item
 {
     public class ExtravagantSalvagedEarring : Item
     {
+        private const uint NORMAL_VALUE = 30000;
         public ExtravagantSalvagedEarring(bool hq, ushort amount) : base(hq, amount)
         {
             this.Name = "沈没船の高級耳飾り";
-            this.Value = 30000;
-            this.Value = this.Value * amount;
+            this.UnitPrice = NORMAL_VALUE;
+
+            this.TotalValue = this.UnitPrice * amount;
         }
     }
 }

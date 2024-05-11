@@ -3,12 +3,6 @@ using System.Numerics;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using FFXIVClientStructs.FFXIV.Client.Game.Housing;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using FFXIVClientStructs.FFXIV.Client.System.Input;
-using System.Xml.Xsl;
-using FFXIVClientStructs.FFXIV.Client.System.Framework;
-using FFXIVClientStructs.FFXIV.Client.System.String;
 namespace SubmersibleScheduler.Windows;
 
 public unsafe class MainWindow : Window, IDisposable
@@ -88,28 +82,30 @@ public unsafe class MainWindow : Window, IDisposable
         {
             foreach (var b in a.GatheredDataSpan)
             {
+
                 if (b.ItemIdPrimary == 0 && b.ItemIdAdditional == 0)
                 {
                     continue;
                 }
 
-
                 if (0 < b.ItemIdPrimary)
                 {
                     test.ItemPush(b.ItemIdPrimary, b.ItemHQPrimary, b.ItemCountPrimary);
                 }
+
                 if (0 < b.ItemIdAdditional)
                 {
                     test.ItemPush(b.ItemIdAdditional, b.ItemHQAdditional, b.ItemCountAdditional);
                 }
+
             }
         }
+
         if (ImGui.Button("コピーーーーー"))
         {
-            var clip_bord = Framework.Instance()->UIClipboard->Data;
-            clip_bord.SetCopyStagingText(Utf8String.FromString($"{test.ItemStr()}\n{test.TotalValue()}"));
-            clip_bord.ApplyCopyStagingText();
+            ClipBord.Copy($"{test.ItemStr()}\n{test.TotalValue()}");
         }
+
         ImGui.Text(test.ItemStr());
         ImGui.Text(test.TotalValue());
         ImGui.Text(this.msg);

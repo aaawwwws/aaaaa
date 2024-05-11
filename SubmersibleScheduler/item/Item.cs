@@ -8,24 +8,25 @@ namespace SubmersibleScheduler.item
 {
     public class Item
     {
-        protected readonly bool Hq;
+        public bool Hq { get; protected set; }
         public string Name { get; set; }
-        public uint Value { get; protected set; }
+        public uint TotalValue { get; protected set; }
         public uint Amount { get; protected set; }
+        public uint UnitPrice { get; protected set; }
+
         protected Item(bool hq, ushort amount)
         {
             this.Hq = hq;
             this.Amount = amount;
         }
 
-        public string GetQuality()
-        {
-            return this.Hq ? "(HQ)" : string.Empty;
-        }
+        public string GetQuality() => this.Hq ? "(HQ)" : string.Empty;
 
-        public string GetAmout()
+        public string GetAmout() => $":{this.Amount}個";
+
+        public virtual void Add(Item item)
         {
-            return $":{this.Amount}個";
+            this.TotalValue = (item.Amount + this.Amount) * this.UnitPrice;
         }
     }
 }
