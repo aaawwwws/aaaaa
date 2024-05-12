@@ -12,7 +12,6 @@ namespace SubmersibleScheduler.item
         public ExtravagantSalvagedNecklace(bool hq, ushort amount) : base(hq, amount)
         {
             this.Name = "沈没船の高級首飾り";
-            this.TotalValue = 34500;
             this.UnitPrice = NORMAL_VALUE;
             this.TotalValue = this.UnitPrice * amount;
         }

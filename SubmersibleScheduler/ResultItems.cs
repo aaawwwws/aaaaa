@@ -35,17 +35,21 @@ namespace SubmersibleScheduler
             }
 
             this.Items.Add(item);
+            this.Items.Sort((a, b) => a.Name.CompareTo(b.Name));
         }
 
         private static Item? ItemCheck(uint id, bool hq, ushort amount)
         {
             return id switch
             {
+                5069 => new GoldIngot(hq, amount),
                 5187 => new Ruby(hq, amount),
                 5188 => new Diamond(hq, amount),
                 5189 => new Emerald(hq, amount),
                 5192 => new Sapphire(hq, amount),
                 9360 => new PlatinumIngot(hq, amount),
+                12544 => new StarRuby(hq, amount),
+                12545 => new StarSapphire(hq, amount),
                 22500 => new SalvagedRing(hq, amount),
                 22501 => new SalvagedBracelet(hq, amount),
                 22502 => new SalvagedEarring(hq, amount),

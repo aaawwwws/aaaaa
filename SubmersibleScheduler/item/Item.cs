@@ -27,6 +27,7 @@ namespace SubmersibleScheduler.item
         public virtual void Add(Item item)
         {
             this.TotalValue = (item.Amount + this.Amount) * this.UnitPrice;
+            this.Amount += item.Amount;
         }
     }
 }

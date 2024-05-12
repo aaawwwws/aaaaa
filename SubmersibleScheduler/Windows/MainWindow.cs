@@ -101,7 +101,7 @@ public unsafe class MainWindow : Window, IDisposable
             }
         }
 
-        if (ImGui.Button("コピーーーーー"))
+        if (ImGui.Button("コピー"))
         {
             ClipBord.Copy($"{test.ItemStr()}\n{test.TotalValue()}");
         }

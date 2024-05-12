@@ -13,7 +13,6 @@ namespace SubmersibleScheduler.item
         {
             this.Name = "沈没船の高級耳飾り";
             this.UnitPrice = NORMAL_VALUE;
-
             this.TotalValue = this.UnitPrice * amount;
         }
     }
