@@ -3,8 +3,8 @@
     "Author": "ade",
     "Name": "SubmersibleScheduler",
     "InternalName": "SubmersibleScheduler",
-    "AssemblyVersion": "0.2",
-    "Description": "0.2",
+    "AssemblyVersion": "0.6",
+    "Description": "0.6",
     "ApplicableVersion": "any",
     "Tags": [
         "submarine",
