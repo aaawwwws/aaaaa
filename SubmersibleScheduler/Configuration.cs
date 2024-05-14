@@ -12,6 +12,8 @@ public class Configuration : IPluginConfiguration
     public bool IsConfigWindowMovable { get; set; } = true;
     public bool SomePropertyToBeSavedAndWithADefault { get; set; } = true;
     public string WebHook { get; set; } = String.Empty;
+    public string LastTime { get; set; } = String.Empty;
+    public string Path { get; set; } = String.Empty;
     // the below exist just to make saving less cumbersome
     [NonSerialized]
     private DalamudPluginInterface? PluginInterface;

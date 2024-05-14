@@ -14,6 +14,9 @@ public unsafe class MainWindow : Window, IDisposable
     private System.Object lockobj;
     private string msg;
     private bool init;
+    private bool initt;
+    private string path;
+    private string csv_res;
     private HousingManager* HousingManager;
 
     public MainWindow(Plugin plugin, HousingManager* hm)
@@ -29,7 +32,10 @@ public unsafe class MainWindow : Window, IDisposable
         this.lockobj = new System.Object();
         this.msg = string.Empty;
         this.init = true;
+        this.initt = true;
         this.HousingManager = hm;
+        this.path = string.Empty;
+        this.csv_res = string.Empty;
     }
 
     public void Dispose() { }
@@ -50,7 +56,9 @@ public unsafe class MainWindow : Window, IDisposable
             return;
         }
 
-        var sba = new SubMarineArray(wt->Submersible);
+        var sm_data = wt->Submersible;
+
+        var sma = new SubMarineArray(sm_data);
 
         ImGui.InputText("WebHookを入力", ref this.WebHook.EndPoint, (uint)128);
 
@@ -70,44 +78,59 @@ public unsafe class MainWindow : Window, IDisposable
             //別スレッド
             System.Threading.Tasks.Task.Run(() =>
             {
-                var res = sba.send_msg(this.WebHook.EndPoint);
+                var res = sma.send_msg(this.WebHook.EndPoint);
                 lock (lockobj)
                 {
                     this.msg = res.Unwrap();
                 }
             });
         }
-        var test = new ResultItems();
-        foreach (var a in this.HousingManager->WorkshopTerritory->Submersible.DataListSpan)
-        {
-            foreach (var b in a.GatheredDataSpan)
-            {
+        long now_time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var drop = new SMDrop(sm_data);
+        const long RETURN_OJ_TIME = 72960;
+        var last_time = this.Plugin.Configuration.LastTime;
 
-                if (b.ItemIdPrimary == 0 && b.ItemIdAdditional == 0)
-                {
-                    continue;
-                }
+        var time_check = last_time != string.Empty ? long.Parse(last_time) : 0;
 
-                if (0 < b.ItemIdPrimary)
-                {
-                    test.ItemPush(b.ItemIdPrimary, b.ItemHQPrimary, b.ItemCountPrimary);
-                }
-
-                if (0 < b.ItemIdAdditional)
-                {
-                    test.ItemPush(b.ItemIdAdditional, b.ItemHQAdditional, b.ItemCountAdditional);
-                }
-
-            }
-        }
+        var return_time = time_check + RETURN_OJ_TIME;
 
         if (ImGui.Button("コピー"))
         {
-            ClipBord.Copy($"{test.ItemStr()}\n{test.TotalValue()}");
+            ClipBord.Copy($"{drop.items.ItemStr()}\n{drop.items.TotalValue()}");
         }
 
-        ImGui.Text(test.ItemStr());
-        ImGui.Text(test.TotalValue());
+        ImGui.Text(drop.items.ItemStr());
+        ImGui.Text(drop.items.TotalValue());
+
+
+        if (this.Plugin.Configuration.Path != string.Empty && this.initt)
+        {
+            initt = false;
+            this.path = Plugin.Configuration.Path;
+        }
+
+        ImGui.InputText("CSVを出力するフォルダのパスを入力", ref this.path, (uint)128);
+
+        if (ImGui.Button("パスを保存") && this.Plugin.Configuration.Path != this.path)
+        {
+            this.Plugin.Configuration.Path = this.path;
+            this.Plugin.Configuration.Save();
+        }
+
+        ImGui.Text("全ての潜水艦が戻ってきたタイミングで押してください。\n例外(3隻OJ、1隻MROJZ等2日かかる場合OJの3隻戻ってきたタイミングで押す)\n普通にめんどくさいので早めに改良します");
+        if (ImGui.Button("CSV書き出し(beta)") && now_time > return_time)
+        {
+            this.csv_res = drop.WriteCsv(this.path) switch
+            {
+                Enum.WriteCode.Success => "成功",
+                Enum.WriteCode.WriteError => "書き込みエラー",
+                Enum.WriteCode.PathError => "パスエラー",
+                _ => "不明",
+            };
+            this.Plugin.Configuration.LastTime = now_time.ToString();
+            this.Plugin.Configuration.Save();
+        }
+        ImGui.Text(this.csv_res);
         ImGui.Text(this.msg);
     }
 }

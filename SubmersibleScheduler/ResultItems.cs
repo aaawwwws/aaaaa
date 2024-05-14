@@ -81,5 +81,15 @@ namespace SubmersibleScheduler
             }
             return string.Format("本日の収穫{0:#,0}ギル", total);
         }
+
+        public uint TotalValueInt()
+        {
+            uint total = 0;
+            foreach (var item in this.Items)
+            {
+                total += item.TotalValue;
+            }
+            return total;
+        }
     }
 }

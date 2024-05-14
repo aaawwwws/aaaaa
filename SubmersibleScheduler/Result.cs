@@ -2,7 +2,7 @@ namespace SubmersibleScheduler
 {
     public class Result<T>
     {
-        private T Value;
+        private T? Value;
         public Res Res { get; private set; }
 
         public Result(T value, Res result)

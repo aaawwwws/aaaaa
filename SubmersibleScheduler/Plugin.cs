@@ -1,14 +1,9 @@
 using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
-using System.IO;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using SubmersibleScheduler.Windows;
-using Dalamud.Game.ClientState.Party;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using Dalamud;
 using FFXIVClientStructs.FFXIV.Client.Game.Housing;
 
