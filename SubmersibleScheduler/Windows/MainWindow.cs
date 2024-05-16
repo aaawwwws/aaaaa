@@ -3,6 +3,7 @@ using System.Numerics;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using FFXIVClientStructs.FFXIV.Client.Game.Housing;
+using SubmersibleScheduler.Submarine;
 namespace SubmersibleScheduler.Windows;
 
 public unsafe class MainWindow : Window, IDisposable
@@ -16,7 +17,7 @@ public unsafe class MainWindow : Window, IDisposable
     private bool init;
     private bool initt;
     private string path;
-    private string csv_res;
+    private string res_csv;
     private HousingManager* HousingManager;
 
     public MainWindow(Plugin plugin, HousingManager* hm)
@@ -35,7 +36,7 @@ public unsafe class MainWindow : Window, IDisposable
         this.initt = true;
         this.HousingManager = hm;
         this.path = string.Empty;
-        this.csv_res = string.Empty;
+        this.res_csv = string.Empty;
     }
 
     public void Dispose() { }
@@ -73,7 +74,7 @@ public unsafe class MainWindow : Window, IDisposable
             this.WebHook.Save();
         }
 
-        if (ImGui.Button("潜水艦の情報をdiscordに送信"))
+        if (ImGui.Button("潜水艦の情報をdiscordに送信a"))
         {
             //別スレッド
             System.Threading.Tasks.Task.Run(() =>
@@ -85,8 +86,13 @@ public unsafe class MainWindow : Window, IDisposable
                 }
             });
         }
-        long now_time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        var drop = new SMDrop(sm_data);
+
+        var submarine_list = new SubmarineList(sm_data);
+
+        ImGui.Text(submarine_list.TotalItem());
+        ImGui.Text(submarine_list.StrTotalValue());
+
+        var now_time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         const long RETURN_OJ_TIME = 72960;
         var last_time = this.Plugin.Configuration.LastTime;
 
@@ -96,12 +102,8 @@ public unsafe class MainWindow : Window, IDisposable
 
         if (ImGui.Button("コピー"))
         {
-            ClipBord.Copy($"{drop.items.ItemStr()}\n{drop.items.TotalValue()}");
+            ClipBord.Copy($"{submarine_list.TotalItem()}\n{submarine_list.StrTotalValue()}");
         }
-
-        ImGui.Text(drop.items.ItemStr());
-        ImGui.Text(drop.items.TotalValue());
-
 
         if (this.Plugin.Configuration.Path != string.Empty && this.initt)
         {
@@ -118,9 +120,12 @@ public unsafe class MainWindow : Window, IDisposable
         }
 
         ImGui.Text("全ての潜水艦が戻ってきたタイミングで押してください。\n例外(3隻OJ、1隻MROJZ等2日かかる場合OJの3隻戻ってきたタイミングで押す)\n普通にめんどくさいので早めに改良します");
-        if (ImGui.Button("CSV書き出し(beta)") && now_time > return_time)
+        ImGui.Text("制限解除したので押した回数書き込まれるので注意");
+
+        if (ImGui.Button("CSV書き出し(beta)"))
         {
-            this.csv_res = drop.WriteCsv(this.path) switch
+            this.Plugin.Configuration.ReturnBools = submarine_list.ReturnBools();
+            this.res_csv = submarine_list.WriteCsv(this.path) switch
             {
                 Enum.WriteCode.Success => "成功",
                 Enum.WriteCode.WriteError => "書き込みエラー",
@@ -130,7 +135,7 @@ public unsafe class MainWindow : Window, IDisposable
             this.Plugin.Configuration.LastTime = now_time.ToString();
             this.Plugin.Configuration.Save();
         }
-        ImGui.Text(this.csv_res);
+        ImGui.Text(this.res_csv);
         ImGui.Text(this.msg);
     }
 }

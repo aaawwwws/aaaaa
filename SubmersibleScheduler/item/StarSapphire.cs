@@ -20,7 +20,6 @@ namespace SubmersibleScheduler.item
         public override void Add(Item item)
         {
             this.TotalValue = (item.Amount + this.Amount) * this.UnitPrice;
-
         }
     }
 }

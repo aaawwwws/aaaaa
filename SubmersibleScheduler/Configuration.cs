@@ -14,6 +14,7 @@ public class Configuration : IPluginConfiguration
     public string WebHook { get; set; } = String.Empty;
     public string LastTime { get; set; } = String.Empty;
     public string Path { get; set; } = String.Empty;
+    public bool[] ReturnBools { get; set; }
     // the below exist just to make saving less cumbersome
     [NonSerialized]
     private DalamudPluginInterface? PluginInterface;
