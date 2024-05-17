@@ -95,7 +95,7 @@ namespace SubmersibleScheduler.Submarine
             {
                 var file_data = File.ReadAllText(per_path);
                 var split_file = file_data.Split(new[] { '\n', '\r' });
-                const int OFF_SET = 1;
+                const int OFFSET = 1;
                 var lastline = split_file[split_file.Length - OFF_SET];
                 var date = lastline.Split(',')[1].Trim();
                 if (!string.IsNullOrEmpty(date) && date.Equals(today))
