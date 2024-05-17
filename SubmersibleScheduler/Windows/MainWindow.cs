@@ -19,6 +19,7 @@ public unsafe class MainWindow : Window, IDisposable
     private string path;
     private string res_csv;
     private HousingManager* HousingManager;
+    private bool test;
 
     public MainWindow(Plugin plugin, HousingManager* hm)
         : base("潜水艦", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
@@ -37,6 +38,7 @@ public unsafe class MainWindow : Window, IDisposable
         this.HousingManager = hm;
         this.path = string.Empty;
         this.res_csv = string.Empty;
+        this.test = false;
     }
 
     public void Dispose() { }
@@ -88,7 +90,6 @@ public unsafe class MainWindow : Window, IDisposable
         }
 
         var submarine_list = new SubmarineList(sm_data);
-
         ImGui.Text(submarine_list.TotalItem());
         ImGui.Text(submarine_list.StrTotalValue());
 
@@ -112,15 +113,16 @@ public unsafe class MainWindow : Window, IDisposable
         }
 
         ImGui.InputText("CSVを出力するフォルダのパスを入力", ref this.path, (uint)128);
-
         if (ImGui.Button("パスを保存") && this.Plugin.Configuration.Path != this.path)
         {
             this.Plugin.Configuration.Path = this.path;
             this.Plugin.Configuration.Save();
+            this.test = true;
         }
+        ImGui.Text(submarine_list.test("F:\\Download"));
 
         ImGui.Text("全ての潜水艦が戻ってきたタイミングで押してください。\n例外(3隻OJ、1隻MROJZ等2日かかる場合OJの3隻戻ってきたタイミングで押す)\n普通にめんどくさいので早めに改良します");
-        ImGui.Text("制限解除したので押した回数書き込まれるので注意");
+        ImGui.Text("日付で判定するようにしたので適当に押してもらって構いません。");
 
         if (ImGui.Button("CSV書き出し(beta)"))
         {
