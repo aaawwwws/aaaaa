@@ -96,12 +96,12 @@ namespace SubmersibleScheduler.Submarine
                 var file_data = File.ReadAllText(per_path);
                 var split_file = file_data.Split(new[] { '\n', '\r' });
                 const int OFFSET = 1;
-                var lastline = split_file[split_file.Length - OFF_SET];
+                var lastline = split_file[split_file.Length - OFFSET];
                 var date = lastline.Split(',')[1].Trim();
                 if (!string.IsNullOrEmpty(date) && date.Equals(today))
                 {
                     //既に今日のデータを書き込んでる場合
-                    split_file[split_file.Length - OFF_SET] = data;
+                    split_file[split_file.Length - OFFSET] = data;
                     var new_data = string.Join('\n', split_file);
                     File.WriteAllText(per_path, new_data.ToString());
                 }
