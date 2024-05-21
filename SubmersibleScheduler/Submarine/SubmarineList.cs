@@ -1,17 +1,13 @@
 using FFXIVClientStructs.FFXIV.Client.Game.Housing;
 using SubmersibleScheduler.Enum;
 using System.IO;
-using System.Linq;
 using System;
 using System.Text;
-using SubmersibleScheduler.Interface;
-using System.Collections.Generic;
-using ImGuiNET;
-using FFXIVClientStructs.FFXIV.Application.Network.WorkDefinitions;
+using Dalamud.Utility;
 
 namespace SubmersibleScheduler.Submarine
 {
-    public class SubmarineList : ToCsv
+    public class SubmarineList
     {
         private readonly int NumSubmarines;
         public readonly Submarine[] Submarines; //List<Submarine>にしてもパフォーマス変わらないっぽいので変更するかも
@@ -60,15 +56,15 @@ namespace SubmersibleScheduler.Submarine
 
         public WriteCode WriteCsv(string path) //分割予定
         {
+            if (path.IsNullOrEmpty()) return WriteCode.PathError;
+
             if (!path.EndsWith('\\'))
             {
                 path += '\\';
             }
 
-            if (!Directory.Exists(path))
-            {
-                return WriteCode.PathError;
-            }
+            if (!Directory.Exists(path)) return WriteCode.PathError;
+
 
             var today = DateTime.Now.ToLocalTime().ToString("yyyy/MM/dd(ddd)");
             var padding = ",,";
@@ -91,13 +87,19 @@ namespace SubmersibleScheduler.Submarine
                 }
             }
 
+            const short OFFSET = 1;
+            const short DATE_CELL = 1;
+            const short VALUE_CELL = 2;
+
             try
             {
+
                 var file_data = File.ReadAllText(per_path);
                 var split_file = file_data.Split(new[] { '\n', '\r' });
-                const int OFFSET = 1;
-                var lastline = split_file[split_file.Length - OFFSET];
-                var date = lastline.Split(',')[1].Trim();
+                var lastline = split_file[split_file.Length - OFFSET].Split(',');
+                var date = lastline[DATE_CELL].Trim();
+                var value = lastline[VALUE_CELL].Trim();
+                if (value.Equals(this.IntTotalValue().ToString()) && date.Equals(today)) return WriteCode.Duplicated;
                 if (!string.IsNullOrEmpty(date) && date.Equals(today))
                 {
                     //既に今日のデータを書き込んでる場合
@@ -127,26 +129,6 @@ namespace SubmersibleScheduler.Submarine
                 bool_list[i] = this.Submarines[i].ReturnTime.IsReturned();
             }
             return bool_list;
-        }
-
-        public string test(string per_path)
-        {
-            var today = DateTime.Now.ToLocalTime().ToString("yyyy/MM/dd(ddd)");
-            if (!per_path.EndsWith('\\'))
-            {
-                per_path += "\\test.csv";
-            }
-            try
-            {
-                var a = File.ReadAllText(per_path);
-                var b = a.Split(new[] { '\n', '\r' });
-                var c = b[b.Length - 1].Split(',');
-                return today.Equals(c[1].Trim()).ToString();
-            }
-            catch (Exception e)
-            {
-                return e.Message;
-            }
         }
     }
 }

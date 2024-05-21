@@ -11,133 +11,102 @@ public unsafe class MainWindow : Window, IDisposable
 #pragma warning disable IDE1006 // 命名スタイル
     private readonly Plugin Plugin;
     private WebHook WebHook;
-    private SubReturn SubReturn;
-    private System.Object lockobj;
     private string msg;
-    private bool init;
-    private bool initt;
-    private string path;
     private string res_csv;
     private HousingManager* HousingManager;
-    private bool test;
-
+    private SubmarineList? SubmarineList;
+    private string Path;
     public MainWindow(Plugin plugin, HousingManager* hm)
-        : base("潜水艦", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
+        : base("メイン", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
         SizeConstraints = new WindowSizeConstraints
         {
-            MinimumSize = new Vector2(375, 330),
+            MinimumSize = new Vector2(380, 380),
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
         };
         this.Plugin = plugin;
         this.WebHook = new WebHook(Plugin);
-        this.lockobj = new System.Object();
         this.msg = string.Empty;
-        this.init = true;
-        this.initt = true;
         this.HousingManager = hm;
-        this.path = string.Empty;
         this.res_csv = string.Empty;
-        this.test = false;
+        this.SubmarineList = null;
+        this.Path = this.Plugin.Configuration.Path == string.Empty ? string.Empty : this.Plugin.Configuration.Path;
     }
 
     public void Dispose() { }
 
-    public override unsafe void Draw()
+    public override void Draw()
     {
-        if (this.HousingManager == null)
+        ImGui.BeginTabBar("タブ");
+        if (ImGui.BeginTabItem("潜水艦"))
         {
-            ImGui.Text("null");
-            return;
-        }
-
-        var wt = this.HousingManager->WorkshopTerritory;
-
-        if (wt == null)
-        {
-            ImGui.Text("潜水艦を確認してください。");
-            return;
-        }
-
-        var sm_data = wt->Submersible;
-
-        var sma = new SubMarineArray(sm_data);
-
-        ImGui.InputText("WebHookを入力", ref this.WebHook.EndPoint, (uint)128);
-
-        if (Plugin.Configuration.WebHook != string.Empty && this.init)
-        {
-            init = false;
-            this.WebHook.EndPoint = Plugin.Configuration.WebHook;
-        }
-
-        if (ImGui.Button("保存"))
-        {
-            this.WebHook.Save();
-        }
-
-        if (ImGui.Button("潜水艦の情報をdiscordに送信a"))
-        {
-            //別スレッド
-            System.Threading.Tasks.Task.Run(() =>
+            if (this.SubmarineList == null && this.HousingManager->WorkshopTerritory != null)
             {
-                var res = sma.send_msg(this.WebHook.EndPoint);
-                lock (lockobj)
+                this.SubmarineList = new SubmarineList(this.HousingManager->WorkshopTerritory->Submersible);
+                return;
+            }
+
+            var wt = this.HousingManager->WorkshopTerritory;
+
+            if (wt == null)
+            {
+                ImGui.Text("潜水艦を確認してください。");
+                return;
+            }
+
+            var sm_data = wt->Submersible;
+
+            var submarine_list = new SubmarineList(sm_data);
+            ImGui.Text(submarine_list.TotalItem());
+            ImGui.Text(submarine_list.StrTotalValue());
+
+            var now_time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            const long RETURN_OJ_TIME = 72960;
+            var last_time = this.Plugin.Configuration.LastTime;
+
+            var time_check = last_time != string.Empty ? long.Parse(last_time) : 0;
+
+            var return_time = time_check + RETURN_OJ_TIME;
+
+            if (ImGui.Button("コピー"))
+            {
+                ClipBord.Copy($"{submarine_list.TotalItem()}\n{submarine_list.StrTotalValue()}");
+            }
+
+            ImGui.Text("日付で判定するようにしたのでその日の利益が確定したら押してください。");
+            if (ImGui.Button("CSV書き出し(beta)"))
+            {
+                this.Plugin.Configuration.ReturnBools = submarine_list.ReturnBools();
+                this.res_csv = submarine_list.WriteCsv(Plugin.Configuration.Path) switch
                 {
-                    this.msg = res.Unwrap();
-                }
-            });
+                    Enum.WriteCode.Success => "成功",
+                    Enum.WriteCode.WriteError => "書き込みエラー",
+                    Enum.WriteCode.PathError => "パスエラー",
+                    Enum.WriteCode.Duplicated => "既に書き込んでいます。",
+                    _ => "不明",
+                };
+                this.Plugin.Configuration.LastTime = now_time.ToString();
+                this.Plugin.Configuration.Save();
+            }
+            ImGui.Text(this.res_csv);
+            ImGui.Text(this.msg);
+            ImGui.EndTabItem();
+        }
+        if (ImGui.BeginTabItem("マクロ"))
+        {
+
         }
 
-        var submarine_list = new SubmarineList(sm_data);
-        ImGui.Text(submarine_list.TotalItem());
-        ImGui.Text(submarine_list.StrTotalValue());
-
-        var now_time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        const long RETURN_OJ_TIME = 72960;
-        var last_time = this.Plugin.Configuration.LastTime;
-
-        var time_check = last_time != string.Empty ? long.Parse(last_time) : 0;
-
-        var return_time = time_check + RETURN_OJ_TIME;
-
-        if (ImGui.Button("コピー"))
+        if (ImGui.BeginTabItem("設定"))
         {
-            ClipBord.Copy($"{submarine_list.TotalItem()}\n{submarine_list.StrTotalValue()}");
-        }
-
-        if (this.Plugin.Configuration.Path != string.Empty && this.initt)
-        {
-            initt = false;
-            this.path = Plugin.Configuration.Path;
-        }
-
-        ImGui.InputText("CSVを出力するフォルダのパスを入力", ref this.path, (uint)128);
-        if (ImGui.Button("パスを保存") && this.Plugin.Configuration.Path != this.path)
-        {
-            this.Plugin.Configuration.Path = this.path;
-            this.Plugin.Configuration.Save();
-            this.test = true;
-        }
-        ImGui.Text(submarine_list.test("F:\\Download"));
-
-        ImGui.Text("全ての潜水艦が戻ってきたタイミングで押してください。\n例外(3隻OJ、1隻MROJZ等2日かかる場合OJの3隻戻ってきたタイミングで押す)\n普通にめんどくさいので早めに改良します");
-        ImGui.Text("日付で判定するようにしたので適当に押してもらって構いません。");
-
-        if (ImGui.Button("CSV書き出し(beta)"))
-        {
-            this.Plugin.Configuration.ReturnBools = submarine_list.ReturnBools();
-            this.res_csv = submarine_list.WriteCsv(this.path) switch
+            ImGui.Text("CSVを出力するフォルダのパスを入力");
+            if (ImGui.InputText(string.Empty, ref this.Path, 128))
             {
-                Enum.WriteCode.Success => "成功",
-                Enum.WriteCode.WriteError => "書き込みエラー",
-                Enum.WriteCode.PathError => "パスエラー",
-                _ => "不明",
-            };
-            this.Plugin.Configuration.LastTime = now_time.ToString();
-            this.Plugin.Configuration.Save();
+                this.Plugin.Configuration.Path = this.Path;
+                this.Plugin.Configuration.Save();
+            }
+            ImGui.EndTabItem();
         }
-        ImGui.Text(this.res_csv);
-        ImGui.Text(this.msg);
+        ImGui.EndTabBar();
     }
 }

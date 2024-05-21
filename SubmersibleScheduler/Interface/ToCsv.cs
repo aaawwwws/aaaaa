@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace SubmersibleScheduler.Interface
 {
-    public interface ToCsv
+    public interface FileHandler
     {
-        public WriteCode WriteCsv(string path);
+        public void CreateFile(int value);
+        public void EditFile(int value);
     }
 }

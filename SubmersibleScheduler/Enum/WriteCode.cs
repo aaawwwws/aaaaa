@@ -10,7 +10,9 @@ namespace SubmersibleScheduler.Enum
     {
         Success,
         WriteError,
+        CreateError,
         PathError,
         WaitTime,
+        Duplicated,
     }
 }

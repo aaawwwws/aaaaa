@@ -30,19 +30,16 @@ namespace SubmersibleScheduler
         {
             PluginInterface = pluginInterface;
             CommandManager = commandManager;
-
             Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             Configuration.Initialize(PluginInterface);
-
+            pluginInterface.Create<Service>();
             var hm = HousingManager.Instance();
 
             // you might normally want to embed resources and load them from the manifest stream
 
             // ITextureProvider takes care of the image caching and dispose
-
             ConfigWindow = new ConfigWindow(this);
             MainWindow = new MainWindow(this, hm);
-
             WindowSystem.AddWindow(ConfigWindow);
             WindowSystem.AddWindow(MainWindow);
 
@@ -53,7 +50,6 @@ namespace SubmersibleScheduler
             });
 
             PluginInterface.UiBuilder.Draw += DrawUI;
-
             // This adds a button to the plugin installer entry of this plugin which allows
             // to toggle the display status of the configuration ui
             PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUI;
@@ -66,7 +62,6 @@ namespace SubmersibleScheduler
         public void Dispose()
         {
             WindowSystem.RemoveAllWindows();
-
             ConfigWindow.Dispose();
             MainWindow.Dispose();
 
@@ -80,9 +75,7 @@ namespace SubmersibleScheduler
         }
 
         private void DrawUI() => WindowSystem.Draw();
-
         public void ToggleConfigUI() => ConfigWindow.Toggle();
         public void ToggleMainUI() => MainWindow.Toggle();
-
     }
 }
