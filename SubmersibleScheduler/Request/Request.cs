@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace SubmersibleScheduler.Request
 {
-    public class Request : IDisposable
+    public class Request
     {
         private readonly HttpClient HttpClient;
         public Request()
@@ -22,22 +22,11 @@ namespace SubmersibleScheduler.Request
         public async Task<RaidMacro.RaidMacro> GetMacro()
         {
             const string URL = "https://raw.githubusercontent.com/aaawwwws/aaaaa/master/macro.json";
-            try
-            {
-                var res = await HttpClient.GetAsync(URL);
-                var json = await res.Content.ReadAsStringAsync();
-                var macro = JsonConvert.DeserializeObject<List<Macro>>(json);
-                return new RaidMacro.RaidMacro(macro);
-            }
-            catch
-            {
-                throw;
-            }
-        }
-
-        public void Dispose()
-        {
+            var res = await HttpClient.GetAsync(URL);
+            var json = await res.Content.ReadAsStringAsync();
+            var macro = JsonConvert.DeserializeObject<List<Macro>>(json);
             this.HttpClient.Dispose();
+            return new RaidMacro.RaidMacro(macro);
         }
     }
 }

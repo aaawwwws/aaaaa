@@ -1,11 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
+using System.Numerics;
 using System.Text;
-using System.Threading.Tasks;
 using ImGuiNET;
-using Newtonsoft.Json;
 using SubmersibleScheduler.Json;
 namespace SubmersibleScheduler.RaidMacro
 {
@@ -23,20 +19,18 @@ namespace SubmersibleScheduler.RaidMacro
             {
                 if (ImGui.CollapsingHeader(macro.field_name))
                 {
+                    ImGui.Indent();
                     foreach (var mcr in macro.macro_list)
                     {
                         var uniqueLabel = $"{macro.field_name} - {i}マクロ目";
                         if (ImGui.CollapsingHeader(uniqueLabel))
                         {
-                            ImGui.Text(mcr);
-                            if (ImGui.Button($"コピー##{macro.field_name}{i}"))
-                            {
-                                ClipBord.Copy(mcr);
-                            }
+                            var copy = mcr;
+                            ImGui.InputTextMultiline($"##{macro.field_name}{i}", ref copy, 512, new Vector2(400, 300));
                         }
                         i++;
                     }
-                    ImGui.Text("");
+                    ImGui.Unindent();
                 }
                 i = 1;
             }
