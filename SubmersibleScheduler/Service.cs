@@ -11,5 +11,8 @@ namespace SubmersibleScheduler
     public class Service
     {
         [PluginService] internal static IChatGui ChatGui { get; private set; } = null!;
+        [PluginService] internal static IGameGui gameGui { get; private set; } = null!;
+        [PluginService] internal static IClientState ClientState { get; private set; } = null!;
+
     }
 }

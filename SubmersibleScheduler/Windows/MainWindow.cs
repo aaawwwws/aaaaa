@@ -10,6 +10,10 @@ using System.Runtime.CompilerServices;
 using Req = SubmersibleScheduler.Request;
 using SubmersibleScheduler.RaidMacro;
 using System.Net.Http;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using FFXIVClientStructs.FFXIV.Client.UI.Info;
+using SubmersibleScheduler.YabaiPlayer;
+using System.Threading;
 namespace SubmersibleScheduler.Windows;
 
 public unsafe class MainWindow : Window, IDisposable
@@ -24,6 +28,9 @@ public unsafe class MainWindow : Window, IDisposable
     private RaidMacro.RaidMacro macro;
     private string Path;
     private readonly string Err;
+    private readonly YabaiPlayer.YabaiPlayer YabaiPlayer;
+    private List<YabaiJson> Res_Yabai;
+    private string Yabai_Error;
     public MainWindow(Plugin plugin, HousingManager* hm)
         : base("メイン")
     {
@@ -39,6 +46,16 @@ public unsafe class MainWindow : Window, IDisposable
         this.res_csv = string.Empty;
         this.SubmarineList = null;
         this.Err = string.Empty;
+        this.YabaiPlayer = new YabaiPlayer.YabaiPlayer();
+        this.Yabai_Error = string.Empty;
+        try
+        {
+            this.Res_Yabai = new Request.Request().GetYabai().GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            this.Yabai_Error = "取得できませんでした";
+        }
         try
         {
             this.macro = new Req.Request().GetMacro().GetAwaiter().GetResult();
@@ -68,7 +85,6 @@ public unsafe class MainWindow : Window, IDisposable
             if (wt == null)
             {
                 ImGui.Text("潜水艦を確認してください。");
-                ImGui.EndTabItem();
             }
             else
             {
@@ -108,11 +124,12 @@ public unsafe class MainWindow : Window, IDisposable
                 }
                 ImGui.Text(this.res_csv);
                 ImGui.Text(this.msg);
-                ImGui.EndTabItem();
             }
+            ImGui.EndTabItem();
         }
         if (ImGui.BeginTabItem("マクロ(実装予定)"))
         {
+            ImGui.Text("もはや潜水艦とは全く関係のない機能の追加");
             if (this.Err == string.Empty)
             {
                 this.macro.Test();
@@ -120,6 +137,10 @@ public unsafe class MainWindow : Window, IDisposable
             else
             {
                 ImGui.Text("接続エラー");
+                if (ImGui.Button("再取得"))
+                {
+                    this.macro = new Req.Request().GetMacro().GetAwaiter().GetResult();
+                }
             }
             ImGui.EndTabItem();
         }
@@ -134,6 +155,61 @@ public unsafe class MainWindow : Window, IDisposable
             }
             ImGui.EndTabItem();
         }
-        ImGui.EndTabBar();
+        if (ImGui.BeginTabItem("ヤバい人ランキング"))
+        {
+            ImGui.Text("怒られたくないので消します。まだ制作中");
+            ImGui.Text("名前 例:Aaa Bbb");
+            ImGui.InputText("##Name", ref this.YabaiPlayer.RefName(), 128);
+            ImGui.Text("サーバー 例:Anima");
+            ImGui.InputText("##Server", ref this.YabaiPlayer.RefServer(), 128);
+            var reqest = new Req.Request();
+
+            if (ImGui.Button("送信"))
+            {
+                var trd = new Thread(new ThreadStart(() =>
+                {
+                    try
+                    {
+                        var res = reqest.PostYabai(Service.ClientState.LocalPlayer.Name.ToString(), Service.ClientState.LocalPlayer.CurrentWorld.GameData.Name.ToString(), this.YabaiPlayer).GetAwaiter().GetResult();
+                        ImGui.Text(Service.ClientState.LocalPlayer.CurrentWorld.GameData.Name.ToString());
+                    }
+                    catch (Exception)
+                    {
+                        ImGui.Text("error");
+                    }
+                }));
+                trd.Start();
+            }
+            if (this.Yabai_Error == string.Empty)
+            {
+                foreach (var item in this.Res_Yabai)
+                {
+                    ImGui.Text($"名前:{item.name} やばいカウント:{item.count}回");
+                }
+            }
+            else
+            {
+                ImGui.Text(this.Yabai_Error);
+            }
+            if (ImGui.Button("再取得"))
+            {
+                var trd = new Thread(new ThreadStart(() =>
+                {
+                    try
+                    {
+                        var res = reqest.PostYabai(Service.ClientState.LocalPlayer.Name.ToString(), Service.ClientState.LocalPlayer.CurrentWorld.GameData.Name.ToString(), this.YabaiPlayer).GetAwaiter().GetResult();
+                        ImGui.Text(Service.ClientState.LocalPlayer.CurrentWorld.GameData.Name.ToString());
+                    }
+                    catch (Exception)
+                    {
+                        ImGui.Text("error");
+                    }
+                }
+                ));
+                trd.Start();
+                ImGui.EndTabItem();
+            }
+            ImGui.EndTabBar();
+        }
     }
 }
