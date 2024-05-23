@@ -3,8 +3,8 @@
     "Author": "ade",
     "Name": "SubmersibleScheduler",
     "InternalName": "SubmersibleScheduler",
-    "AssemblyVersion": "0.9.4",
-    "Description": "0.9.4",
+    "AssemblyVersion": "0.9.5",
+    "Description": "0.9.5",
     "ApplicableVersion": "any",
     "Tags": [
         "submarine",
@@ -18,8 +18,8 @@
     "Punchline": "",
     "AcceptsFeedback": true,
     "ImageUrls": null,
-    "DownloadLinkInstall": "https://github.com/aaawwwws/aaaaa/releases/download/0.9.4/latest.zip",
-    "DownloadLinkTesting": "https://github.com/aaawwwws/aaaaa/releases/download/0.9.4/latest.zip",
-    "DownloadLinkUpdate": "https://github.com/aaawwwws/aaaaa/releases/download/0.9.4/latest.zip"
+    "DownloadLinkInstall": "https://github.com/aaawwwws/aaaaa/releases/download/0.9.5/latest.zip",
+    "DownloadLinkTesting": "https://github.com/aaawwwws/aaaaa/releases/download/0.9.5/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/aaawwwws/aaaaa/releases/download/0.9.5/latest.zip"
     }
 ]
