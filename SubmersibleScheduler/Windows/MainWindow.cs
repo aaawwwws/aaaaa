@@ -198,8 +198,7 @@ public unsafe class MainWindow : Window, IDisposable
                 {
                     try
                     {
-                        var res = reqest.PostYabai(Service.ClientState.LocalPlayer.Name.ToString(), Service.ClientState.LocalPlayer.CurrentWorld.GameData.Name.ToString(), this.YabaiPlayer).GetAwaiter().GetResult();
-                        ImGui.Text(Service.ClientState.LocalPlayer.CurrentWorld.GameData.Name.ToString());
+                        this.Res_Yabai = reqest.GetYabai().GetAwaiter().GetResult();
                     }
                     catch (Exception)
                     {
