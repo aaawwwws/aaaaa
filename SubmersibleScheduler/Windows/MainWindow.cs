@@ -14,6 +14,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using SubmersibleScheduler.YabaiPlayer;
 using System.Threading;
+using SubmersibleScheduler.Request;
 namespace SubmersibleScheduler.Windows;
 
 public unsafe class MainWindow : Window, IDisposable
@@ -50,7 +51,9 @@ public unsafe class MainWindow : Window, IDisposable
         this.Yabai_Error = string.Empty;
         try
         {
-            this.Res_Yabai = new Request.Request().GetYabai().GetAwaiter().GetResult();
+            var req = new Request.Request();
+            this.Res_Yabai = req.GetYabai().GetAwaiter().GetResult();
+            req.Dispose();
         }
         catch (Exception ex)
         {
@@ -58,7 +61,9 @@ public unsafe class MainWindow : Window, IDisposable
         }
         try
         {
-            this.macro = new Req.Request().GetMacro().GetAwaiter().GetResult();
+            var req = new Req.Request();
+            this.macro = req.GetMacro().GetAwaiter().GetResult();
+            req.Dispose();
         }
         catch (HttpRequestException)
         {
@@ -67,7 +72,9 @@ public unsafe class MainWindow : Window, IDisposable
         this.Path = this.Plugin.Configuration.Path == string.Empty ? string.Empty : this.Plugin.Configuration.Path;
     }
 
-    public void Dispose() { }
+    public void Dispose()
+    {
+    }
 
     public override void Draw()
     {
@@ -173,13 +180,49 @@ public unsafe class MainWindow : Window, IDisposable
                     {
                         var res = reqest.PostYabai(Service.ClientState.LocalPlayer.Name.ToString(), Service.ClientState.LocalPlayer.CurrentWorld.GameData.Name.ToString(), this.YabaiPlayer).GetAwaiter().GetResult();
                         ImGui.Text(Service.ClientState.LocalPlayer.CurrentWorld.GameData.Name.ToString());
+                        this.Res_Yabai = reqest.GetYabai().GetAwaiter().GetResult();
+
                     }
                     catch (Exception)
                     {
                         ImGui.Text("error");
                     }
-                }));
-                trd.Start();
+                }
+                ));
+                try
+                {
+                    trd.Start();
+                }
+                catch (Exception ex)
+                {
+
+                }
+            }
+            if (ImGui.Button("再取得"))
+            {
+                var trd = new Thread(new ThreadStart(() =>
+                {
+                    try
+                    {
+                        var req = new Request.Request();
+                        this.Res_Yabai = req.GetYabai().GetAwaiter().GetResult();
+                        req.Dispose();
+                    }
+                    catch (Exception)
+                    {
+                        ImGui.Text("error");
+                    }
+                }
+                ));
+                try
+                {
+                    trd.Start();
+                }
+                catch
+                {
+
+                }
+
             }
             if (this.Yabai_Error == string.Empty)
             {
@@ -192,24 +235,9 @@ public unsafe class MainWindow : Window, IDisposable
             {
                 ImGui.Text(this.Yabai_Error);
             }
-            if (ImGui.Button("再取得"))
-            {
-                var trd = new Thread(new ThreadStart(() =>
-                {
-                    try
-                    {
-                        this.Res_Yabai = reqest.GetYabai().GetAwaiter().GetResult();
-                    }
-                    catch (Exception)
-                    {
-                        ImGui.Text("error");
-                    }
-                }
-                ));
-                trd.Start();
-                ImGui.EndTabItem();
-            }
-            ImGui.EndTabBar();
+            ImGui.EndTabItem();
         }
+
+        ImGui.EndTabBar();
     }
 }
