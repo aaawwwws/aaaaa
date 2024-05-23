@@ -157,6 +157,7 @@ public unsafe class MainWindow : Window, IDisposable
         }
         if (ImGui.BeginTabItem("ヤバい人ランキング"))
         {
+            //ガチ適当なので消す
             ImGui.Text("怒られたくないので消します。まだ制作中");
             ImGui.Text("名前 例:Aaa Bbb");
             ImGui.InputText("##Name", ref this.YabaiPlayer.RefName(), 128);
