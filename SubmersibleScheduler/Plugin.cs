@@ -6,6 +6,7 @@ using Dalamud.Plugin.Services;
 using SubmersibleScheduler.Windows;
 using Dalamud;
 using FFXIVClientStructs.FFXIV.Client.Game.Housing;
+using System.Threading;
 
 namespace SubmersibleScheduler
 {
@@ -33,13 +34,13 @@ namespace SubmersibleScheduler
             Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             Configuration.Initialize(PluginInterface);
             pluginInterface.Create<Service>();
-            var hm = HousingManager.Instance();
 
             // you might normally want to embed resources and load them from the manifest stream
 
             // ITextureProvider takes care of the image caching and dispose
+
             ConfigWindow = new ConfigWindow(this);
-            MainWindow = new MainWindow(this, hm);
+            MainWindow = new MainWindow(this, SynchronizationContext.Current);
             WindowSystem.AddWindow(ConfigWindow);
             WindowSystem.AddWindow(MainWindow);
 

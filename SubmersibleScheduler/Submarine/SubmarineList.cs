@@ -4,6 +4,7 @@ using System.IO;
 using System;
 using System.Text;
 using Dalamud.Utility;
+using SubmersibleScheduler.Error;
 
 namespace SubmersibleScheduler.Submarine
 {
@@ -54,16 +55,16 @@ namespace SubmersibleScheduler.Submarine
             return total;
         }
 
-        public WriteCode WriteCsv(string path) //分割予定
+        public void WriteCsv(string path) //分割予定
         {
-            if (path.IsNullOrEmpty()) return WriteCode.PathError;
+            if (path.IsNullOrEmpty()) throw new DirectoryNotFoundException("パスが見つかりません");
 
             if (!path.EndsWith('\\'))
             {
                 path += '\\';
             }
 
-            if (!Directory.Exists(path)) return WriteCode.PathError;
+            if (!Directory.Exists(path)) throw new DirectoryNotFoundException("パスが見つかりません");
 
 
             var today = DateTime.Now.ToLocalTime().ToString("yyyy/MM/dd(ddd)");
@@ -75,50 +76,34 @@ namespace SubmersibleScheduler.Submarine
             //ファイル作成処理
             if (!File.Exists(per_path))
             {
-                try
-                {
-                    var new_file = File.Create(per_path);
-                    new_file.Dispose();
-                    File.WriteAllText(per_path, $"{padding}\n{label}");
-                }
-                catch (Exception)
-                {
-                    return WriteCode.WriteError;
-                }
+                var new_file = File.Create(per_path);
+                new_file.Dispose();
+                File.WriteAllText(per_path, $"{padding}\n{label}");
             }
 
             const short OFFSET = 1;
             const short DATE_CELL = 1;
             const short VALUE_CELL = 2;
 
-            try
-            {
 
-                var file_data = File.ReadAllText(per_path);
-                var split_file = file_data.Split(new[] { '\n', '\r' });
-                var lastline = split_file[split_file.Length - OFFSET].Split(',');
-                var date = lastline[DATE_CELL].Trim();
-                var value = lastline[VALUE_CELL].Trim();
-                if (value.Equals(this.IntTotalValue().ToString()) && date.Equals(today)) return WriteCode.Duplicated;
-                if (!string.IsNullOrEmpty(date) && date.Equals(today))
-                {
-                    //既に今日のデータを書き込んでる場合
-                    split_file[split_file.Length - OFFSET] = data;
-                    var new_data = string.Join('\n', split_file);
-                    File.WriteAllText(per_path, new_data.ToString());
-                }
-                else
-                {
-                    //まだ書き込んでない場合
-                    File.AppendAllText(per_path, $"\n{data}");
-                }
-            }
-            catch (Exception)
+            var file_data = File.ReadAllText(per_path);
+            var split_file = file_data.Split(new[] { '\n', '\r' });
+            var lastline = split_file[split_file.Length - OFFSET].Split(',');
+            var date = lastline[DATE_CELL].Trim();
+            var value = lastline[VALUE_CELL].Trim();
+            if (value.Equals(this.IntTotalValue().ToString()) && date.Equals(today)) throw new DuplicateException("既に書き込まれいます");
+            if (!string.IsNullOrEmpty(date) && date.Equals(today))
             {
-                return WriteCode.WriteError;
+                //既に今日のデータを書き込んでる場合
+                split_file[split_file.Length - OFFSET] = data;
+                var new_data = string.Join('\n', split_file);
+                File.WriteAllText(per_path, new_data.ToString());
             }
-
-            return WriteCode.Success;
+            else
+            {
+                //まだ書き込んでない場合
+                File.AppendAllText(per_path, $"\n{data}");
+            }
         }
 
         public bool[] ReturnBools()

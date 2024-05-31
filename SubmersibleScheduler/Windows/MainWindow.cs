@@ -15,16 +15,18 @@ using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using SubmersibleScheduler.YabaiPlayer;
 using System.Threading;
 using SubmersibleScheduler.Request;
+using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
+using SubmersibleScheduler.Error;
+using System.IO;
 namespace SubmersibleScheduler.Windows;
 
-public unsafe class MainWindow : Window, IDisposable
+public class MainWindow : Window, IDisposable
 {
 #pragma warning disable IDE1006 // 命名スタイル
     private readonly Plugin Plugin;
     private WebHook WebHook;
     private string msg;
-    private string res_csv;
-    private HousingManager* HousingManager;
     private SubmarineList? SubmarineList;
     private RaidMacro.RaidMacro macro;
     private string Path;
@@ -32,7 +34,11 @@ public unsafe class MainWindow : Window, IDisposable
     private readonly YabaiPlayer.YabaiPlayer YabaiPlayer;
     private List<YabaiJson> Res_Yabai;
     private string Yabai_Error;
-    public MainWindow(Plugin plugin, HousingManager* hm)
+    private object objlock = new object();
+    private SynchronizationContext synchronizationContext;
+    private Message message;
+    private string TotalValue;
+    public unsafe MainWindow(Plugin plugin, SynchronizationContext sc)
         : base("メイン")
     {
         SizeConstraints = new WindowSizeConstraints
@@ -43,12 +49,21 @@ public unsafe class MainWindow : Window, IDisposable
         this.Plugin = plugin;
         this.WebHook = new WebHook(Plugin);
         this.msg = string.Empty;
-        this.HousingManager = hm;
-        this.res_csv = string.Empty;
         this.SubmarineList = null;
         this.Err = string.Empty;
         this.YabaiPlayer = new YabaiPlayer.YabaiPlayer();
         this.Yabai_Error = string.Empty;
+        this.synchronizationContext = sc;
+        this.message = new Message();
+        this.TotalValue = string.Empty;
+        try
+        {
+            this.TotalValue = ReadFile.TotalValue(plugin.Configuration.Path);
+        }
+        catch (Exception ex)
+        {
+            this.TotalValue = "合計値を取得できませんでした。";
+        }
         try
         {
             var req = new Request.Request();
@@ -76,64 +91,64 @@ public unsafe class MainWindow : Window, IDisposable
     {
     }
 
+    private unsafe HousingWorkshopSubmersibleData Aaa()
+    {
+        var housing = HousingManager.Instance();
+        return housing->WorkshopTerritory->Submersible;
+    }
+
     public override void Draw()
     {
+        HousingWorkshopSubmersibleData sm_data;
+        try
+        {
+            sm_data = this.Aaa();
+        }
+        catch (Exception)
+        {
+            ImGui.Text("潜水艦を確認してください");
+            return;
+        }
+
         ImGui.BeginTabBar("タブ");
         if (ImGui.BeginTabItem("潜水艦"))
         {
-            if (this.SubmarineList == null && this.HousingManager->WorkshopTerritory != null)
+            var submarine_list = new SubmarineList(sm_data);
+
+            ImGui.Text(submarine_list.TotalItem());
+            ImGui.Text(submarine_list.StrTotalValue());
+
+            if (ImGui.Button("コピー"))
             {
-                this.SubmarineList = new SubmarineList(this.HousingManager->WorkshopTerritory->Submersible);
-                return;
+                ClipBord.Copy($"{submarine_list.TotalItem()}\n{submarine_list.StrTotalValue()}");
             }
 
-            var wt = this.HousingManager->WorkshopTerritory;
-
-            if (wt == null)
+            ImGui.Text("日付で判定するようにしたのでその日の利益が確定したら押してください。");
+            if (ImGui.Button("CSV書き出し(beta)"))
             {
-                ImGui.Text("潜水艦を確認してください。");
-            }
-            else
-            {
-                var sm_data = wt->Submersible;
-
-                var submarine_list = new SubmarineList(sm_data);
-                ImGui.Text(submarine_list.TotalItem());
-                ImGui.Text(submarine_list.StrTotalValue());
-
-                var now_time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                const long RETURN_OJ_TIME = 72960;
-                var last_time = this.Plugin.Configuration.LastTime;
-
-                var time_check = last_time != string.Empty ? long.Parse(last_time) : 0;
-
-                var return_time = time_check + RETURN_OJ_TIME;
-
-                if (ImGui.Button("コピー"))
+                try
                 {
-                    ClipBord.Copy($"{submarine_list.TotalItem()}\n{submarine_list.StrTotalValue()}");
+                    submarine_list.WriteCsv(Plugin.Configuration.Path);
+                    this.message.CsvMsg = "成功";
                 }
-
-                ImGui.Text("日付で判定するようにしたのでその日の利益が確定したら押してください。");
-                if (ImGui.Button("CSV書き出し(beta)"))
+                catch (DuplicateException e)
                 {
-                    this.Plugin.Configuration.ReturnBools = submarine_list.ReturnBools();
-                    this.res_csv = submarine_list.WriteCsv(Plugin.Configuration.Path) switch
-                    {
-                        Enum.WriteCode.Success => "成功",
-                        Enum.WriteCode.WriteError => "書き込みエラー",
-                        Enum.WriteCode.PathError => "パスエラー",
-                        Enum.WriteCode.Duplicated => "既に書き込んでいます。",
-                        _ => "不明",
-                    };
-                    this.Plugin.Configuration.LastTime = now_time.ToString();
-                    this.Plugin.Configuration.Save();
+                    this.message.CsvMsg = e.Message;
                 }
-                ImGui.Text(this.res_csv);
-                ImGui.Text(this.msg);
+                catch (DirectoryNotFoundException e)
+                {
+                    this.message.CsvMsg = e.Message;
+                }
+                catch (Exception)
+                {
+                    this.message.CsvMsg = "原因不明なエラー";
+                }
             }
+            ImGui.Text(this.TotalValue);
+            ImGui.Text(this.message.CsvMsg);
             ImGui.EndTabItem();
         }
+
         if (ImGui.BeginTabItem("マクロ(実装予定)"))
         {
             ImGui.Text("もはや潜水艦とは全く関係のない機能の追加");
@@ -162,6 +177,7 @@ public unsafe class MainWindow : Window, IDisposable
             }
             ImGui.EndTabItem();
         }
+        /*
         if (ImGui.BeginTabItem("ヤバい人ランキング"))
         {
             //ガチ適当なので消す
@@ -174,61 +190,43 @@ public unsafe class MainWindow : Window, IDisposable
 
             if (ImGui.Button("送信"))
             {
-                var trd = new Thread(new ThreadStart(() =>
+                await Task.Run(() =>
                 {
                     try
                     {
                         var res = reqest.PostYabai(Service.ClientState.LocalPlayer.Name.ToString(), Service.ClientState.LocalPlayer.CurrentWorld.GameData.Name.ToString(), this.YabaiPlayer).GetAwaiter().GetResult();
-                        ImGui.Text(Service.ClientState.LocalPlayer.CurrentWorld.GameData.Name.ToString());
-                        this.Res_Yabai = reqest.GetYabai().GetAwaiter().GetResult();
-
                     }
                     catch (Exception)
                     {
-                        ImGui.Text("error");
+                        UpdateUI(() => ImGui.Text("error"));
                     }
-                }
-                ));
-                try
-                {
-                    trd.Start();
-                }
-                catch (Exception ex)
-                {
+                });
 
-                }
             }
+
             if (ImGui.Button("再取得"))
             {
-                var trd = new Thread(new ThreadStart(() =>
+                var req = new Request.Request();
+                await Task.Run(async () =>
                 {
-                    try
-                    {
-                        var req = new Request.Request();
-                        this.Res_Yabai = req.GetYabai().GetAwaiter().GetResult();
-                        req.Dispose();
-                    }
-                    catch (Exception)
-                    {
-                        ImGui.Text("error");
-                    }
-                }
-                ));
-                try
-                {
-                    trd.Start();
-                }
-                catch
-                {
+                    var req = new Request.Request();
+                    var result = await req.GetYabai();
+                    req.Dispose();
 
-                }
+                    UpdateUI(() => this.Res_Yabai = result);
+
+                });
 
             }
+
             if (this.Yabai_Error == string.Empty)
             {
-                foreach (var item in this.Res_Yabai)
+                lock (objlock)
                 {
-                    ImGui.Text($"名前:{item.name} やばいカウント:{item.count}回");
+                    foreach (var item in this.Res_Yabai)
+                    {
+                        ImGui.Text($"名前:{item.name} やばいカウント:{item.count}回");
+                    }
                 }
             }
             else
@@ -237,6 +235,7 @@ public unsafe class MainWindow : Window, IDisposable
             }
             ImGui.EndTabItem();
         }
+            */
 
         ImGui.EndTabBar();
     }
